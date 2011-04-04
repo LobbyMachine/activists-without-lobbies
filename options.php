@@ -109,7 +109,7 @@ function awl_options_page() {
 ?>
 	<div class="wrap">
 	<form method="post" action="options.php">
-		<h2>Avtivists without Lobbies</h2>
+		<h2>Activists without Lobbies</h2>
 		 <?php settings_fields('activists_lobbies'); ?>
 		<?php do_settings_sections('awl_options'); ?>
 
