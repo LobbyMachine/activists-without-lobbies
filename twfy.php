@@ -2,7 +2,7 @@
 /**
  * wrapper for TheyWorkForYou library
  * @package activists-lobbies
- * @author Christopher Roussel <christopher@impleri.net>
+ * @todo make into a separate plugin
  */
 
 /**
@@ -72,7 +72,7 @@ class awl_twfy {
 	 * elected member parser
 	 *
 	 * parse an result member array into an html listing
-	 * @param array 
+	 * @param array
 	 * @return string formatted html
 	 */
 	public static function parseMember ($member) {

@@ -2,7 +2,6 @@
 /**
  * template functions for campaigns
  * @package activists-lobbies
- * @author Christopher Roussel <christopher@impleri.net>
  */
 
 /**

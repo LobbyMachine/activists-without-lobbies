@@ -2,19 +2,18 @@
 /**
  * awl root file
  * @package activists-lobbies
- * @author Christopher Roussel <christopher@impleri.net>
  */
 
 /*
 Plugin Name: Activists without Lobbies
-Version: 0.1.0
+Version: 0.1.1
 Plugin URI: http://github.com/impleri/activists-without-lobbies/
 Description: Lobby like the big organisations!
 Author: Christopher Roussel and Alex Andrews
 */
 
 // Keep this file short and sweet; leave the clutter for elsewhere!
-define('AWL_VERSION', '0.1.0');
+define('AWL_VERSION', '0.1.1');
 load_plugin_textdomain( 'activists-lobbies', false, basename(dirname(__FILE__)) . '/lang' );
 
 // Options and auths need to be loaded first/always
@@ -24,7 +23,6 @@ require_once dirname(__FILE__) . '/options.php';
  * Checks if install/upgrade needs to run by checking version in db
  * @todo campaign metadata
  * @todo implement events
- * @todo implement signatures (i.e. frontend!)
  * @todo templates
  * @todo roles and capabilities
  * @todo widgets
@@ -82,9 +80,9 @@ function awl_init() {
 // 	awl_init_event();
 
 	// and the signature 'comment type'
-// 	require_once dirname(__FILE__) . '/signature.php'; // adds signature/supporters
-// 	require_once dirname(__FILE__) . '/signature-template.php';
-// 	awl_init_signature();
+// 	require_once dirname(__FILE__) . '/comment.php'; // adds signature/supporters
+// 	require_once dirname(__FILE__) . '/comment-template.php';
+// 	awl_init_comment();
 
 	// finally the widgets, ajax, and the mySociety connector
 // 	include_once dirname(__FILE__) . '/widgets.php';

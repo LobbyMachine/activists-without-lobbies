@@ -2,7 +2,6 @@
 /**
  * roles and capabilities
  * @package activists-lobbies
- * @author Christopher Roussel <christopher@impleri.net>
  */
 
 /**

@@ -2,11 +2,10 @@
 /**
  * campaign custom_type and related taxonomies
  * @package activists-lobbies
- * @author Christopher Roussel <christopher@impleri.net>
  */
 
 /**
- * custom product post_type
+ * campaign post_type
  */
 function awl_campaign_type() {
 	$slug = awl_get_option('slug_campaign');
@@ -27,8 +26,8 @@ function awl_campaign_type() {
 			'description' => __('Campaign information.', 'activists-lobbies'),
 			'supports' => array('title', 'editor', 'author', 'revisions', 'thumbnail', 'excerpt', 'trackbacks', 'page-attributes'),
 			'rewrite' => array('slug' => $slug, 'pages' => true, 'feeds' => true, 'with_front' => false),
-// 			'register_meta_box_cb' => 'awl_campaign_boxes',
-			'taxonomies' => array('category'),
+			'register_meta_box_cb' => 'awl_campaign_boxes',
+			'taxonomies' => array('post_tag', 'category'),
 			'capability_type' => 'campaign',
 			'has_archive' => $slug,
 // 			'map_meta_cap' => true,
@@ -43,33 +42,43 @@ function awl_campaign_type() {
 }
 
 /**
- * generic taxonomy (all of this just to rename 'post tags' to simply 'tags'!)
+ * callback from registering awl_campaign to generate meta boxes on an edit page
+ * use action add_meta_boxes_awl_campaign_types to insert additional campaign types
  */
-function awl_tag_tax() {
-	$slug = aml_get_option('slug_campaign');
+function awl_campaign_boxes() {
+	add_meta_box('awl_campaign_meta', __('Additional Settings', 'conference-manager'), 'awl_mb_meta', 'awl_campaign', 'side', 'high');
+}
 
-	$labels = array(
-		'name' => _x('Tags', 'taxonomy general name', 'amazon-library'),
-		'singular_name' => _x('Tag', 'taxonomy singular name', 'amazon-library'),
-	);
+/**
+ * meta box for campaign metadata
+ * use filter awl_campaign_types to insert additional campaign types
+ */
+function awl_mb_meta() {
+	$types = array('petition' => 'Online Petition');
+	$types = apply_filters('awl_campaign_types', $types);
 
-	$capabilities = array(
-		'manage_terms' => 'manage_tags',
-		'edit_terms' => 'edit_tags',
-		'delete_terms' => 'edit_tags',
-		'assign_terms' => 'edit_campaigns',
-	);
+	// drop-down for campaign type
+}
 
-	$args = array(
-		'rewrite' => array('slug' => "$slug/tag", 'pages' => true, 'feeds' => false, 'with_front' => false),
-		'capabilities' => $capabilities,
-		'query_var' => 'awl_tag',
-	 	'hierarchical' => false,
-		'labels' => $labels,
-		'public' => true,
-	);
-	register_taxonomy( 'awl_tag', 'awl_campaign', $args);
-	add_filter('taxonomy_template', 'awl_tag_taxonomy_template');
+/**
+ * callback to process posted metadata
+ *
+ * @param int post id
+ */
+function awl_campaign_meta_postback ($post_id, $post) {
+	if (!wp_verify_nonce($_POST["awl_campaign_meta_nonce"], basename(__FILE__)) || 'awl_campaign' != $post->post_type) {
+		return $post_id;
+	}
+
+	$image = $_POST['cm_image'];
+	$asin = $_POST['cm_asin'];
+	$type = $_POST['cm_type'];
+	$link = $_POST['cm_link'];
+
+	cm_update_meta('cm_asin', $post_id, $asin);
+	cm_update_meta('cm_type', $post_id, $type);
+	cm_update_meta('cm_link', $post_id, $link);
+	cm_update_meta('cm_image', $post_id, $image);
 }
 
 /**
@@ -96,6 +105,6 @@ function awl_campaign_right_now() {
  */
 function awl_init_campaign() {
 	awl_campaign_type();
-	awl_tag_tax();
 	add_action('right_now_content_table_end', 'awl_campaign_right_now');
+	add_action('save_post', 'awl_campaign_meta_postback', 10, 2);
 }

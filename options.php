@@ -2,7 +2,6 @@
 /**
  * admin menus and some plugin options
  * @package activists-lobbies
- * @author Christopher Roussel <christopher@impleri.net>
  */
 
 /**
