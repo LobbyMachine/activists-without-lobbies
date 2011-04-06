@@ -6,7 +6,7 @@
 
 /*
 Plugin Name: Activists without Lobbies
-Version: 0.1.1
+Version: 0.1.2
 Plugin URI: http://github.com/impleri/activists-without-lobbies/
 Description: Lobby like the big organisations!
 Author: Christopher Roussel and Alex Andrews
@@ -18,6 +18,7 @@ load_plugin_textdomain( 'activists-lobbies', false, basename(dirname(__FILE__)) 
 
 // Options and auths need to be loaded first/always
 require_once dirname(__FILE__) . '/options.php';
+require_once dirname(__FILE__) . '/functions.php';
 
 /**
  * Checks if install/upgrade needs to run by checking version in db
@@ -80,9 +81,9 @@ function awl_init() {
 // 	awl_init_event();
 
 	// and the signature 'comment type'
-// 	require_once dirname(__FILE__) . '/comment.php'; // adds signature/supporters
-// 	require_once dirname(__FILE__) . '/comment-template.php';
-// 	awl_init_comment();
+	require_once dirname(__FILE__) . '/comment.php'; // adds signature/supporters
+	require_once dirname(__FILE__) . '/comment-template.php';
+	awl_init_comment();
 
 	// finally the widgets, ajax, and the mySociety connector
 // 	include_once dirname(__FILE__) . '/widgets.php';
