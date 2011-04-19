@@ -1,6 +1,6 @@
 <?php
 /**
- * campaign custom_type and related taxonomies
+ * campaign custom_type and petition campaign type
  * @package activists-lobbies
  */
 
@@ -24,13 +24,13 @@ function awl_campaign_type() {
 
 	$args = array(
 			'description' => __('Campaign information.', 'activists-lobbies'),
-			'supports' => array('title', 'editor', 'author', 'revisions', 'thumbnail', 'excerpt', 'trackbacks', 'page-attributes'),
+			'supports' => array('title', 'editor', 'author', 'revisions', 'thumbnail', 'excerpt', 'trackbacks', 'page-attributes', 'comments'),
 			'rewrite' => array('slug' => $slug, 'pages' => true, 'feeds' => true, 'with_front' => false),
 			'register_meta_box_cb' => 'awl_campaign_boxes',
 			'taxonomies' => array('post_tag', 'category'),
 			'capability_type' => 'campaign',
 			'has_archive' => $slug,
-// 			'map_meta_cap' => true,
+			'map_meta_cap' => true,
 			'hierarchical' => true,
 			'query_var' => true,
 			'labels' => $labels,
@@ -46,18 +46,30 @@ function awl_campaign_type() {
  * use action add_meta_boxes_awl_campaign_types to insert additional campaign types
  */
 function awl_campaign_boxes() {
-	add_meta_box('awl_campaign_meta', __('Additional Settings', 'conference-manager'), 'awl_mb_meta', 'awl_campaign', 'side', 'high');
+	add_meta_box('awl_campaign_meta', __('Campaign Setup', 'activists-lobbies'), 'awl_mb_meta', 'awl_campaign', 'side', 'high');
 }
 
 /**
  * meta box for campaign metadata
  * use filter awl_campaign_types to insert additional campaign types
+ * @todo would this work better as individual metaboxes?
  */
 function awl_mb_meta() {
-	$types = array('petition' => 'Online Petition');
-	$types = apply_filters('awl_campaign_types', $types);
+	$types = apply_filters('awl_campaign_types', array());
 
-	// drop-down for campaign type
+	// drop-down for campaign types
+	$select = '<select id="awl_campaign_type" name="awl_campaign_type">';
+	$select .= '<option value="none">' . __('Select Campaign', 'amazon-library') . '</option>';
+	foreach ($types as $id => $name) {
+		$select .= '<option value="' . $id . '">' . __($name, 'amazon-library') . '</option>';
+	}
+	$select .= '</select>';
+
+	// add extra fields from campaign type
+	$html = apply_filters('awl_campaign_setup', '');
+	if (!empty($html)) {
+		echo $select . $html;
+	}
 }
 
 /**
@@ -66,24 +78,19 @@ function awl_mb_meta() {
  * @param int post id
  */
 function awl_campaign_meta_postback ($post_id, $post) {
-	if (!wp_verify_nonce($_POST["awl_campaign_meta_nonce"], basename(__FILE__)) || 'awl_campaign' != $post->post_type) {
+	$req = isset($_REQUEST['post_type']) ? $_REQUEST['post_type'] : '';
+	if ( ('awl_campaign' != $req) || !current_user_can( 'edit_campaign', $post_id ) ) {
 		return $post_id;
 	}
+	$image = isset($_POST['awl_image']) ? $_POST['awl_image'] : null;
 
-	$image = $_POST['cm_image'];
-	$asin = $_POST['cm_asin'];
-	$type = $_POST['cm_type'];
-	$link = $_POST['cm_link'];
-
-	cm_update_meta('cm_asin', $post_id, $asin);
-	cm_update_meta('cm_type', $post_id, $type);
-	cm_update_meta('cm_link', $post_id, $link);
-	cm_update_meta('cm_image', $post_id, $image);
+	awl_update_meta('awl_image', $post_id, $image);
 }
 
 /**
  * display counts in the diashboard
  * @todo push html to template functions
+ * @todo move to separate dashboard box to highlight current campaign numbers
  */
 function awl_campaign_right_now() {
 	$num_posts = wp_count_posts('awl_campaign');
@@ -106,5 +113,4 @@ function awl_campaign_right_now() {
 function awl_init_campaign() {
 	awl_campaign_type();
 	add_action('right_now_content_table_end', 'awl_campaign_right_now');
-	add_action('save_post', 'awl_campaign_meta_postback', 10, 2);
 }

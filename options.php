@@ -8,12 +8,14 @@
  * default options
  */
 function awl_default_options() {
-	return array(
-		'mysociety_key' => '',
+	$defaults = array(
+		'signature_types' => array(),
 		'slug_campaign' => 'campaign',
 		'slug_event' => 'event',
 		'version' => AWL_VERSION,
 	);
+	$defaults = apply_filters('awl_default_options', $defaults);
+	return $defaults;
 }
 
 /**
@@ -47,16 +49,11 @@ function awl_options_validate ($awl_post) {
 	$valid = array();
 	//TODO: more validation!
 
-	$valid['mysociety_key'] = ($awl_post['awl_mysociety_key']) ? sanitize_text_field($awl_post['awl_mysociety_key']) : null;
-	$valid['slug_campaign'] = ($awl_post['awl_slug_campaign']) ? sanitize_text_field($awl_post['awl_slug_campaign']) : null;
-	$valid['slug_event'] = ($awl_post['awl_slug_event']) ? sanitize_text_field($awl_post['awl_slug_event']) : null;
-
-	// merge (defaults, current, and new values) into one array
+	$valid['slug_campaign'] = isset($awl_post['slug_campaign']) ? sanitize_text_field($awl_post['slug_campaign']) : null;
+	$valid['slug_event'] = isset($awl_post['slug_event']) ? sanitize_text_field($awl_post['slug_event']) : null;
+	$valid = apply_filters('awl_options_postback', $awl_post, $valid);
 	$valid = array_merge($defaults, $options, $valid);
-	// Throw an error if no AWS info
-	if (empty($valid['mysociety_key'])) {
-		add_settings_error('awl_options', 'activists-lobbies', __('MySociety key is required for AwL to function properly!', 'activists-lobbies'));
-	}
+	do_action('awl_options_validate', $valid);
 	return $valid;
 }
 
@@ -66,15 +63,6 @@ function awl_options_validate ($awl_post) {
 function awl_options_basic() {
 ?>
 <p><?php _e('Basic settings for Activists without Lobbies.', 'activists-lobbies'); ?></p>
-<?php }
-
-/**
- * mySociety key field
- */
-function awl_mysociety_key_field() {
-?>
-<input type="text" size="50" id="awl_mysociety_key" name="awl_options[mysociety_key]" value="<?php echo htmlentities(awl_get_option('mysociety_key'), ENT_QUOTES, "UTF-8"); ?>" />
-<p><?php echo sprintf(__('Required to use mySociety\'s TheyWorkForYou (for contacting and locating MPs).  It is free to sign up. Register <a href="%s">here</a>.', 'activists-lobbies'), 'http://www.theyworkforyou.com/api/'); ?></p>
 <?php }
 
 /**
@@ -108,21 +96,14 @@ function awl_slug_event_field() {
  * initialises options by inserting missing options and registering with WP settings api
  * @todo check once more
  */
-function awl_options_init() {
-	$default_options = awl_default_options();
-	$options = get_option('awl_options', awl_default_options());
-	$options = (false === $options) ? array() : $options;
-	$options = array_merge($default_options, $options);
-	update_option('awl_options', $options);
-
+function awl_init_options() {
 	register_setting('activists_lobbies', 'awl_options', 'awl_options_validate');
-
 	add_options_page(__('Activists without Lobbies', 'activists-lobbies'), __('Activists without Lobbies', 'activists-lobbies'), 'manage_options', 'awl_options', 'awl_options_page');
-
 	add_settings_section('awl_options_basic', __('Basic Settings', 'activists-lobbies'), 'awl_options_basic', 'awl_options');
 
-	// Amazon field definitions
-	add_settings_field('awl_mysociety_key', __('mySociety TheyWorkForYou key', 'activists-lobbies'), 'awl_mysociety_key_field', 'awl_options', 'awl_options_basic');
 	add_settings_field('awl_slug_campaign', __('Campaign permalink base', 'activists-lobbies'), 'awl_slug_campaign_field', 'awl_options', 'awl_options_basic');
 	add_settings_field('awl_slug_event', __('Event permalink base', 'activists-lobbies'), 'awl_slug_event_field', 'awl_options', 'awl_options_basic');
+	do_action('awl_options_init');
 }
+
+add_action('admin_menu', 'awl_init_options');

@@ -10,7 +10,7 @@
  * @param string found template
  * @return string path to template
  */
-function awl_product_archive_template ($template) {
+function awl_campaign_archive_template ($template) {
 	return awl_insert_template ($template, 'awl_campaign', 'archive');
 }
 
@@ -20,16 +20,6 @@ function awl_product_archive_template ($template) {
  * @param string found template
  * @return string path to template
  */
-function awl_product_single_template ($template) {
+function awl_campaign_single_template ($template) {
 	return awl_insert_template ($template, 'awl_campaign', 'single');
-}
-
-/**
- * wrapper to template hack for taxonomy-awl_tag
- *
- * @param string found template
- * @return string path to template
- */
-function awl_tag_taxonomy_template ($template) {
-	return awl_insert_template ($template, 'awl_tag', 'taxonomy');
 }

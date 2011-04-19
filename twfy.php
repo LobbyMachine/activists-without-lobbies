@@ -1,8 +1,9 @@
 <?php
 /**
- * wrapper for TheyWorkForYou library
+ * TheyWorkForYou campaign type and wrapper
  * @package activists-lobbies
- * @todo make into a separate plugin
+ * @subpackage twfy-type
+ * @todo make into a separate plugin?
  */
 
 /**
@@ -56,7 +57,7 @@ class awl_twfy {
 		}
 
 		$org = strtoupper($org);
-		$org = ($org == 'MSP' || $org == 'MLA') ? $org => 'MP';
+		$org = ($org == 'MSP' || $org == 'MLA') ? $org : 'MP';
 
 		$member = $twfy->query('get'.$org, $args = array('postcode' => $postcode, 'always_return' => '1', 'output' => 'php'));
 		$member = unserialize($member);
@@ -100,6 +101,85 @@ class awl_twfy {
 
 		$ret = '';
 	}
-
-
 }
+
+/**
+ * add to awl default options
+ *
+ * @param array $defaults
+ * @return array $defaults (modified)
+ */
+function awl_twfy_defaults ($defaults) {
+	$default['mysociety_key'] = '';
+	return $defaults;
+}
+
+/**
+ * mySociety key field
+ */
+function awl_mysociety_key_field() {
+?>
+<input type="text" size="50" id="awl_mysociety_key" name="awl_options[mysociety_key]" value="<?php echo htmlentities(awl_get_option('mysociety_key'), ENT_QUOTES, "UTF-8"); ?>" />
+<p><?php echo sprintf(__('Required to use mySociety\'s TheyWorkForYou (for contacting and locating MPs).  It is free to sign up. Register <a href="%s">here</a>.', 'activists-lobbies'), 'http://www.theyworkforyou.com/api/'); ?></p>
+<?php }
+
+/**
+ * callback to process posted metadata
+ *
+ * @param int post id
+ * @param object WP_post object
+ */
+function awl_twfy_meta_postback ($post_id, $post) {
+	$req = isset($_REQUEST['post_type']) ? $_REQUEST['post_type'] : '';
+	if ( ('awl_campaign' != $req) || !current_user_can( 'edit_campaign', $post_id ) ) {
+		return $post_id;
+	}
+	$image = isset($_POST['awl_image']) ? $_POST['awl_image'] : null;
+
+	awl_update_meta('awl_image', $post_id, $image);
+}
+
+/**
+ * validates additional posted options
+ *
+ * @param array $_POST data passed from WP
+ * @return array validated options
+ */
+function awl_twfy_options_postback ($awl_post, $valid) {
+	$valid['mysociety_key'] = isset($awl_post['mysociety_key']) ? sanitize_text_field($awl_post['mysociety_key']) : null;
+	return $valid;
+}
+
+/**
+ * check sanitised data for missing requirements
+ *
+ * @param array $valid data passed through filtering and validation
+ */
+function awl_twfy_validate ($valid) {
+	// Throw an error if no AWS info
+	if (empty($valid['mysociety_key'])) {
+		add_settings_error('awl_options', 'activists-lobbies', sprintf(__('MySociety key is required for AwL to function properly: %s', 'activists-lobbies'), 'http://www.theyworkforyou.com/api/key'));
+	}
+}
+
+/**
+ * initialise twfy options
+ */
+function awl_twfy_options() {
+	add_filter('awl_options_postback', 'awl_twfy_options_postback', 10, 2);
+	add_action('awl_options_validate', 'awl_twfy_validate');
+	add_settings_field('awl_mysociety_key', __('mySociety TheyWorkForYou key', 'activists-lobbies'), 'awl_mysociety_key_field', 'awl_options', 'awl_options_basic');
+}
+
+/**
+ * initialise twfy campaign type
+ */
+function awl_twfy_init() {
+	add_filter('awl_default_options', 'awl_twfy_defaults');
+	add_filter('awl_campaign_types', 'awl_twfy_type');
+	add_filter('awl_campaign_setup', 'awl_twfy_setup');
+	add_action('awl_init_options', 'awl_twfy_options');
+// 	add_action('save_post', 'awl_twfy_meta_postback', 10, 2);
+}
+
+add_action('init', 'awl_twfy_init');

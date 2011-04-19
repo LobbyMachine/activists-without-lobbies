@@ -6,14 +6,14 @@
 
 /*
 Plugin Name: Activists without Lobbies
-Version: 0.1.2
+Version: 0.1.4
 Plugin URI: http://github.com/impleri/activists-without-lobbies/
 Description: Lobby like the big organisations!
 Author: Christopher Roussel and Alex Andrews
 */
 
 // Keep this file short and sweet; leave the clutter for elsewhere!
-define('AWL_VERSION', '0.1.1');
+define('AWL_VERSION', '0.1.4');
 load_plugin_textdomain( 'activists-lobbies', false, basename(dirname(__FILE__)) . '/lang' );
 
 // Options and auths need to be loaded first/always
@@ -67,7 +67,6 @@ function awl_init() {
 
 	// auths first!
 	require_once dirname(__FILE__) . '/roles.php';
-	// add_filter('map_meta_cap', 'awl_meta_cap', 10, 4);
 	awl_capabilities();
 
 	// next the campaign post_type
@@ -81,14 +80,13 @@ function awl_init() {
 // 	awl_init_event();
 
 	// and the signature 'comment type'
-	require_once dirname(__FILE__) . '/comment.php'; // adds signature/supporters
-	require_once dirname(__FILE__) . '/comment-template.php';
-	awl_init_comment();
+	require_once dirname(__FILE__) . '/signature.php'; // adds signature/supporters
+// 	require_once dirname(__FILE__) . '/comment-template.php';
 
 	// finally the widgets, ajax, and the mySociety connector
 // 	include_once dirname(__FILE__) . '/widgets.php';
 // 	require_once dirname(__FILE__) . '/ajax.php';
-	require_once dirname(__FILE__) . '/twfy.php';
+// 	require_once dirname(__FILE__) . '/twfy.php';
 
 	// also add base css for styling
 // 	wp_enqueue_style('aml-style', plugins_url('/css/awl.css', dirname(__FILE__) ));
