@@ -47,6 +47,7 @@ function awl_campaign_type() {
  */
 function awl_campaign_boxes() {
 	add_meta_box('awl_campaign_meta', __('Campaign Setup', 'activists-lobbies'), 'awl_mb_meta', 'awl_campaign', 'side', 'high');
+	wp_enqueue_script('awl-campaign', plugins_url('/activists-without-lobbies/js/campaign.js'));
 }
 
 /**
@@ -55,21 +56,27 @@ function awl_campaign_boxes() {
  * @todo would this work better as individual metaboxes?
  */
 function awl_mb_meta() {
+	global $post;
+
 	$types = apply_filters('awl_campaign_types', array());
+	$html = apply_filters('awl_campaign_setup', '');
+	$campaign = get_post_meta($post->ID, 'awl_campaign_type', true);
+	$show = get_post_meta($post->ID, 'awl_show_comments', true);
 
 	// drop-down for campaign types
 	$select = '<select id="awl_campaign_type" name="awl_campaign_type">';
-	$select .= '<option value="none">' . __('Select Campaign', 'amazon-library') . '</option>';
+	$select .= '<option value="none">' . __('Select Campaign', 'activists-lobbies') . '</option>';
 	foreach ($types as $id => $name) {
-		$select .= '<option value="' . $id . '">' . __($name, 'amazon-library') . '</option>';
+		$select .= '<option' . selected($campaign, $id, false) . ' value="' . $id . '">' . __($name, 'activists-lobbies') . '</option>';
 	}
 	$select .= '</select>';
 
-	// add extra fields from campaign type
-	$html = apply_filters('awl_campaign_setup', '');
-	if (!empty($html)) {
-		echo $select . $html;
-	}
+	// common settings go on top so that they're not confused with type-specific settings
+	$top = '<div id="campaign-common" name="campaign-common">' . "\n";
+	$top .= '<label for="show_comments" class="selectit"><input name="show_comments" type="checkbox" id="show_comments" value="show" ' . checked($show, 'show') . ' /> ' . __('Show comments.', 'activists-lobbies') . '</label>';
+	$top .= '</div>' . "\n";
+
+	echo $top . $select . '<div id="awl_campaign_options">' . $html . '</div>';
 }
 
 /**
@@ -82,17 +89,20 @@ function awl_campaign_meta_postback ($post_id, $post) {
 	if ( ('awl_campaign' != $req) || !current_user_can( 'edit_campaign', $post_id ) ) {
 		return $post_id;
 	}
-	$image = isset($_POST['awl_image']) ? $_POST['awl_image'] : null;
 
-	awl_update_meta('awl_image', $post_id, $image);
+	$type = isset($_REQUEST['awl_campaign_type']) ? $_REQUEST['awl_campaign_type'] : null;
+	awl_update_meta('awl_campaign_type', $post_id, $type);
+
+	$show = (isset($_POST['show_comments']) && $_POST['show_comments'] == 'show') ? 'show' : '';
+	awl_update_meta('awl_show_comments', $post_id, $show);
 }
 
 /**
  * display counts in the diashboard
  * @todo push html to template functions
- * @todo move to separate dashboard box to highlight current campaign numbers
+ * @todo implement highlighting current campaign numbers
  */
-function awl_campaign_right_now() {
+function awl_campaign_dashboard() {
 	$num_posts = wp_count_posts('awl_campaign');
 	$num = number_format_i18n($num_posts->publish);
 	$text = _n('Campaign', 'Campaigns', intval($num_posts->publish), 'activists-lobbies');
@@ -100,11 +110,16 @@ function awl_campaign_right_now() {
 		$num = '<a href="/wp-admin/edit.php?post_type=awl_campaign">' . $num . '</a>';
 		$text = '<a href="/wp-admin/edit.php?post_type=awl_campaign">' . $text . '</a>';
 	}
+	$top = '<div id="campaign_summary">';
+	$top .= '<div class="first b b-tags">'.$num.'</div>';
+	$top .= '<div class="t tags">' . $text . '</div>';
+	$top .= '</div>';
+}
 
-	echo '<tr>';
-	echo '<td class="first b b-tags">'.$num.'</td>';
-	echo '<td class="t tags">' . $text . '</td>';
-	echo '</tr>';
+function awl_campaign_dashboard_init() {
+	if (current_user_can('edit_campaigns')) {
+		wp_add_dashboard_widget('campaigns_right_now', __( 'Current Campaigns' ), 'awl_campaign_dashboard');
+	}
 }
 
 /**
@@ -112,5 +127,5 @@ function awl_campaign_right_now() {
  */
 function awl_init_campaign() {
 	awl_campaign_type();
-	add_action('right_now_content_table_end', 'awl_campaign_right_now');
+	add_action('wp_dashboard_setup', 'awl_campaign_dashboard_init');
 }

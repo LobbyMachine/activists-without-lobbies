@@ -92,8 +92,20 @@ function awl_signature_form ($defaults) {
 		'surname' => '<p class="comment-form-author">' . '<label for="surname">' . __('Surname', 'activists-lobbies') . '</label> <span class="required">*</span><input id="surname" name="surname" type="text" value="' . esc_attr($surname) . '" size="30" aria-required="true" /></p>',
 		'postcode' => '<p class="comment-form-postcode">' . '<label for="postcode">' . __('Postcode', 'activists-lobbies') . '</label> <span class="required">*</span><input id="postcode" name="postcode" type="text" value="" size="30" aria-required="true" /></p>',
 	);
-
 	$defaults['fields'] = $fields + $defaults['fields'];
+
+	if (is_user_logged_in()) {
+		$user = wp_get_current_user();
+		$given_name = ($user->first_name) ? $user->first_name : $user->display_name;
+		$surname = ($user->last_name) ? $user->last_name : '';
+
+		$logged_in =  '<input id="author" name="author" type="hidden" value="' . esc_attr($user->display_name) . '" size="30" /></p>' .
+		'<p class="comment-form-author">' . '<label for="given_name">' . __('Given Name', 'activists-lobbies') . '</label> <span class="required">*</span><input id="given_name" name="given_name" type="text" value="' . esc_attr($given_name) . '" size="30" aria-required="true" /></p>' .
+		'<p class="comment-form-author">' . '<label for="surname">' . __('Surname', 'activists-lobbies') . '</label> <span class="required">*</span><input id="surname" name="surname" type="text" value="' . esc_attr($surname) . '" size="30" aria-required="true" /></p>' .
+		'<p class="comment-form-postcode">' . '<label for="postcode">' . __('Postcode', 'activists-lobbies') . '</label> <span class="required">*</span><input id="postcode" name="postcode" type="text" value="" size="30" aria-required="true" /></p>';
+		$defaults['logged_in_as'] .= $logged_in;
+	}
+
 	return $defaults;
 }
 

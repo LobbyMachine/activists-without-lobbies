@@ -175,6 +175,12 @@ function awl_twfy_options() {
  * initialise twfy campaign type
  */
 function awl_twfy_init() {
+	$ms_key = awl_get_option('mysociety_key');
+
+	if (empty($ms_key)) {
+		return;
+	}
+
 	add_filter('awl_default_options', 'awl_twfy_defaults');
 	add_filter('awl_campaign_types', 'awl_twfy_type');
 	add_filter('awl_campaign_setup', 'awl_twfy_setup');

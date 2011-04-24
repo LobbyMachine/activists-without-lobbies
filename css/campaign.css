@@ -1,0 +1,10 @@
+.petition-progress-box {
+	background:#FFFFFF;
+	border:1px solid #000000;
+}
+
+.petition-progress-bar {
+	background:#0033FF;
+	font-size:8px;
+	line-height:8px;
+}
