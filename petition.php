@@ -98,12 +98,11 @@ function awl_signature_progress ($current, $total, $class='petition-progress', $
  */
 function awl_petition_meta_postback ($post_id, $post) {
 	$req = isset($_REQUEST['post_type']) ? $_REQUEST['post_type'] : '';
-	$type = isset($_POST['awl_campaign_type']) ? $_POST['awl_campaign_type'] : '';
-
 	if ( ('awl_campaign' != $req) || !current_user_can( 'edit_campaign', $post_id ) ) {
 		return $post_id;
 	}
 
+	$type = isset($_POST['awl_campaign_type']) ? $_POST['awl_campaign_type'] : '';
 	if ('petition' != $type) {
 		return $post_id;
 	}
@@ -116,14 +115,35 @@ function awl_petition_meta_postback ($post_id, $post) {
 }
 
 /**
+ * filter out signatory name when necessary
+ *
+ * @param string html to display
+ * @return string html (modified)
+ */
+function awl_petition_show_name ($html) {
+	$id = 0;
+	$post = get_post($id);
+	$types = awl_get_option('signature_types', array());
+	$type = get_post_meta($post->ID, 'awl_campaign_type', true);
+
+	// not our concern
+	if ('awl_campaign' != $post->post_type || 'petition' != $type) {
+		return $html;
+	}
+
+	$show_name = get_post_meta($post->ID, 'awl_petition_show_names', true);
+	return ('show' == $show_name) ? $html : '';
+}
+
+/**
  * initialise petition campaign type
  */
-// function awl_petition_init() {
+function awl_init_petition() {
 	add_filter('awl_campaign_types', 'awl_petition_type');
 	add_filter('awl_campaign_setup', 'awl_petition_setup');
 	add_filter('the_content', 'awl_petition_content');
+	add_filter('get_comment_author_link', 'awl_petition_show_name');
 	add_action('save_post', 'awl_petition_meta_postback', 10, 2);
 	awl_init_signature('petition');
-// }
+}
 
-// add_action('init', 'awl_petition_init');

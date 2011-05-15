@@ -58,6 +58,7 @@ function awl_init() {
 	// campaign types must come after signature
 	require_once dirname(__FILE__) . '/petition.php'; // petition campaign type
 // 	require_once dirname(__FILE__) . '/twfy.php'; // twfy campaign type
+	awl_init_petition();
 
 	// followed by the event post_type
 // 	require_once dirname(__FILE__) . '/event.php'; // adds events and locations

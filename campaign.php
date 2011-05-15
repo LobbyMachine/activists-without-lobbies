@@ -53,10 +53,10 @@ function awl_campaign_boxes() {
 /**
  * meta box for campaign metadata
  * use filter awl_campaign_types to insert additional campaign types
- * @todo would this work better as individual metaboxes?
  */
 function awl_mb_meta() {
-	global $post;
+	$id = 0;
+	$post = get_post($id);
 
 	$types = apply_filters('awl_campaign_types', array());
 	$html = apply_filters('awl_campaign_setup', '');
@@ -73,7 +73,7 @@ function awl_mb_meta() {
 
 	// common settings go on top so that they're not confused with type-specific settings
 	$top = '<div id="campaign-common" name="campaign-common">' . "\n";
-	$top .= '<label for="show_comments" class="selectit"><input name="show_comments" type="checkbox" id="show_comments" value="show" ' . checked($show, 'show') . ' /> ' . __('Show comments.', 'activists-lobbies') . '</label>';
+	$top .= '<label for="awl_show_comments" class="selectit"><input name="awl_show_comments" type="checkbox" id="awl_show_comments" value="show" ' . checked($show, true, false) . ' /> ' . __('Show comments.', 'activists-lobbies') . '</label>';
 	$top .= '</div>' . "\n";
 
 	echo $top . $select . '<div id="awl_campaign_options">' . $html . '</div>';
@@ -83,18 +83,17 @@ function awl_mb_meta() {
  * callback to process posted metadata
  *
  * @param int post id
+ * @param obj WP_post object
  */
 function awl_campaign_meta_postback ($post_id, $post) {
 	$req = isset($_REQUEST['post_type']) ? $_REQUEST['post_type'] : '';
-	if ( ('awl_campaign' != $req) || !current_user_can( 'edit_campaign', $post_id ) ) {
-		return $post_id;
+	if ( ('awl_campaign' == $req) && current_user_can('edit_campaign', $post_id) ) {
+		$type = isset($_POST['awl_campaign_type']) ? $_POST['awl_campaign_type'] : null;
+		awl_update_meta('awl_campaign_type', $post_id, $type);
+
+		$show = (isset($_POST['awl_show_comments']) && $_POST['awl_show_comments'] == 'show');
+		awl_update_meta('awl_show_comments', $post_id, $show);
 	}
-
-	$type = isset($_REQUEST['awl_campaign_type']) ? $_REQUEST['awl_campaign_type'] : null;
-	awl_update_meta('awl_campaign_type', $post_id, $type);
-
-	$show = (isset($_POST['show_comments']) && $_POST['show_comments'] == 'show') ? 'show' : '';
-	awl_update_meta('awl_show_comments', $post_id, $show);
 }
 
 /**
@@ -128,4 +127,5 @@ function awl_campaign_dashboard_init() {
 function awl_init_campaign() {
 	awl_campaign_type();
 	add_action('wp_dashboard_setup', 'awl_campaign_dashboard_init');
+	add_action('save_post', 'awl_campaign_meta_postback', 10, 2);
 }
